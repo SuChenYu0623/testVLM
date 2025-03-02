@@ -200,10 +200,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('device:', device)
 model = BLIPModel(vocab_size=vocab_size)
 model = model.to(device)
-criterion = nn.CrossEntropyLoss()       # 損失函數
+criterion = nn.CrossEntropyLoss(label_smoothing=0.1)       # 損失函數
 optimizer = optim.Adam(model.parameters(), lr=1e-5)  # 優化器
 # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.05)
-num_epochs = 50
+num_epochs = 1
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
 for epoch in range(num_epochs):
     model.train()
@@ -228,6 +228,8 @@ for epoch in range(num_epochs):
 
         images = images.to(device)
         captions = input_ids.to(device)
+
+        optimizer.zero_grad()            # 梯度歸零
         # print(f'before into model. images: {images.shape}, captions: {captions.shape}' )
         outputs = model(images, captions)  # 前向傳播
         attention_mask = (captions != 0).float()
@@ -247,7 +249,7 @@ for epoch in range(num_epochs):
 
         if batch_idx % 100 == 0:
             pass
-            # print(f'Epoch [{epoch}], idx[{batch_idx}], Loss: {loss.item():.4f}')  # 顯示訓練損失
+            print(f'Epoch [{epoch}], idx[{batch_idx}], Loss: {loss.item():.4f}')  # 顯示訓練損失
 
         
         # break  # 只跑一次
