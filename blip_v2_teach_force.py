@@ -95,18 +95,17 @@ for epoch in range(num_epochs):
         
         # 從 t=1 開始逐步生成，直到達到預設的最大序列長度
         for t in range(1, seq_len):
-            # 使用目前生成的 token 序列作為 decoder 的輸入
-            logits = model.text_decoder(generated, memory)
-            # 取最後一步的 logits，shape: [B, vocab_size]
-            last_logits = logits[:, -1, :]
-            # 取得模型預測的 token (greedy decoding)
-            predicted_token = last_logits.argmax(dim=-1, keepdim=True)  # shape: [B, 1]
-            
             # 決定是否使用 teacher forcing
             if random.random() < teacher_forcing_ratio:
                 # 使用 ground-truth token 作為下一個輸入
                 next_token = captions[:, t].unsqueeze(1)  # shape: [B, 1]
             else:
+                # 使用目前生成的 token 序列作為 decoder 的輸入
+                logits = model.text_decoder(generated, memory)
+                # 取最後一步的 logits，shape: [B, vocab_size]
+                last_logits = logits[:, -1, :]
+                # 取得模型預測的 token (greedy decoding)
+                predicted_token = last_logits.argmax(dim=-1, keepdim=True)  # shape: [B, 1]
                 # 使用模型預測的 token
                 next_token = predicted_token
             
